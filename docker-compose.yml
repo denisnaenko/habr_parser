@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  parser:
+    image: habr-parser
+    build: .
+    working_dir: /app
+    command: ["python", "parser.py"]
