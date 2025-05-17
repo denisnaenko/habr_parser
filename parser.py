@@ -19,7 +19,7 @@ def load_existing_data():
 
 def save_data(data):
     with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        json.dump(data, ensure_ascii=False, indent=2, fp=f)
 
 def get_comments_html(article_url, article_author):
     comments_url = article_url.rstrip('/') + '/comments/'
@@ -76,7 +76,15 @@ def parse_article(url, existing_urls):
         data['views'] = views_tag[-1].text.strip() if views_tag else None
 
         text_block = soup.find('div', id='post-content-body')
-        data['text_content'] = text_block.get_text(separator='\n').strip() if text_block else ''
+        
+        if text_block:
+            # Удаляем все теги, кроме указанных
+            for tag in text_block.find_all():
+                if tag.name not in ['h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'li', 'blockquote', 'br', 'b']:
+                    tag.unwrap()
+            data['text_content'] = ''.join(str(child) for child in text_block.contents)
+        else:
+            data['text_content'] = ''
 
         images = text_block.find_all('img') if text_block else []
         data['image_content'] = [img['src'] for img in images if 'src' in img.attrs]
